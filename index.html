@@ -26,7 +26,7 @@
             var calendar;
 
             window.onload = function () {
-                setDonutWheel();
+                setDonutWheel(false);
             };
 
             setDonutWheel = function (isfix) {
@@ -34,8 +34,8 @@
                 calendar.slicePathType = calendar.wheelTypes.Donut;
                 calendar.fixDate = isfix;
                 calendar.fixTime = isfix;
-                calendar.timeVisible = false;
-                calendar.selectionEnable = true;
+                calendar.timeVisible = isfix;
+                calendar.selectionEnable = !isfix;
                 calendar.createWheelNav();
                 calendar.setDateTime();
             };
@@ -45,8 +45,8 @@
                 calendar.slicePathType = calendar.wheelTypes.Menu;
                 calendar.fixDate = isfix;
                 calendar.fixTime = isfix;
-                calendar.timeVisible = false;
-                calendar.selectionEnable = true;
+                calendar.timeVisible = isfix;
+                calendar.selectionEnable = !isfix;
                 calendar.createWheelNav();
                 calendar.setDateTime();
             };

@@ -89,7 +89,6 @@ wheelnavdatetime.prototype.initWheelNav = function (wheelnav, minPercent, maxPer
     wheelnav.titleAttr = { font: '100 20px Impact, Charcoal, sans-serif', fill: "#111", stroke: "none", cursor: 'pointer', opacity: 0.2 };
     wheelnav.titleSelectedAttr = { font: '100 20px Impact, Charcoal, sans-serif', fill: "#FFF", cursor: 'default', opacity: 1 };
 
-    wheelnav.animatetime = 1000;
     wheelnav.animateeffect = "linear";
     wheelnav.navItemsEnabled = this.selectionEnable;
     wheelnav.clickModeRotate = !fixed;
@@ -99,6 +98,13 @@ wheelnavdatetime.prototype.initWheelNav = function (wheelnav, minPercent, maxPer
     }
     else {
         wheelnav.navAngle = -90;
+    }
+
+    if (this.selectionEnable) {
+        wheelnav.animatetime = 1000;
+    }
+    else {
+        wheelnav.animatetime = 0;
     }
 };
 
@@ -158,7 +164,10 @@ wheelnavdatetime.prototype.setDateTime = function () {
             this.wheelnavSec.navigateWheel(s);
         }
     }
-    //var thisDateTime = this;
-    //var t = setTimeout(function () { thisDateTime.setDateTime() }, 0);
+
+    if (!this.selectionEnable) {
+        var thisDateTime = this;
+        var t = setTimeout(function () { thisDateTime.setDateTime() }, 0);
+    }
 };
 

@@ -8,7 +8,7 @@
 /* Check http://wheelnavjs.softwaretailoring.net for samples.                              */
 /* Fork https://github.com/softwaretailoring/wheelnav for contribution.                    */
 /* ======================================================================================= */
-/* Copyright © 2014 Gábor Berkesi (http://softwaretailoring.net)                           */
+/* Copyright © 2014-2015 Gábor Berkesi (http://softwaretailoring.net)                      */
 /* Licensed under MIT (https://github.com/softwaretailoring/wheelnav/blob/master/LICENSE)  */
 /* ======================================================================================= */
 
@@ -50,7 +50,7 @@ wheelnav = function (divId, raphael, divWidth, divHeight) {
     else {
         //The divId parameter has to be the identifier of the wheelnav in this case.
         this.raphael = raphael;
-        canvasWidth = this.raphael.canvas.offsetWidth;
+        canvasWidth = this.raphael.canvas.clientWidth;
     }
 
     //Public properties
