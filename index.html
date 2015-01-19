@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Datetime plugin for wheelnav.js library">
+        <meta name="author" content="gabor.berkesi@softwaretailoring.net">
+        <link rel="shortcut icon" href="http://wheelnavjs.softwaretailoring.net/wheelnav_favicon.png">
+
+        <title>wheelnav.js - datetime</title>
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <link href="css/index.css" rel="stylesheet">
+
+        <script type="text/javascript" src="js/raphael.js"></script> 
+        <script type="text/javascript" src="js/wheelnav.js"></script>
+        <script type="text/javascript" src="js/wheelnav.datetime.js"></script>
+        <script type="text/javascript">
+
+            var calendar;
+
+            window.onload = function () {
+                setDonutWheel();
+            };
+
+            setDonutWheel = function (isfix) {
+                calendar = new wheelnavdatetime("divWheelnavDateTime");
+                calendar.slicePathType = calendar.wheelTypes.Donut;
+                calendar.fixDate = isfix;
+                calendar.fixTime = isfix;
+                calendar.timeVisible = false;
+                calendar.selectionEnable = true;
+                calendar.createWheelNav();
+                calendar.setDateTime();
+            };
+
+            setMenuWheel = function (isfix) {
+                calendar = new wheelnavdatetime("divWheelnavDateTime");
+                calendar.slicePathType = calendar.wheelTypes.Menu;
+                calendar.fixDate = isfix;
+                calendar.fixTime = isfix;
+                calendar.timeVisible = false;
+                calendar.selectionEnable = true;
+                calendar.createWheelNav();
+                calendar.setDateTime();
+            };
+
+        </script>
+    </head>
+    <body>
+        <header>
+            <p>
+                This is a datetime <a href="https://github.com/softwaretailoring/wheelnav.datetime" target="_blank" title="GitHub">plugin</a> for wheelnav.js library. 
+                For more information please visit the <a href="http://wheelnavjs.softwaretailoring.net" target="_blank">project page</a>
+            </p>
+        </header>
+        <div style="text-align: center;">
+            <input type="button" onclick="setDonutWheel(false);" class="datetimeButton" value="Donut" />
+            <input type="button" onclick="setMenuWheel(false);" class="datetimeButton" value="Menu" />
+            <input type="button" onclick="setDonutWheel(true);" class="datetimeButton" value="Donut-fix" />
+            <input type="button" onclick="setMenuWheel(true);" class="datetimeButton" value="Menu-fix" />
+        </div>
+        <div id="divWheelnavDateTime" style="width: 800px; height: 800px; margin: auto;"></div>
+        <footer>
+            <label class="tradename">&copy; 2015 <a href="http://softwaretailoring.net" target="_blank">softwaretailoring.net</a></label>
+        </footer>
+    </body>
+</html>
