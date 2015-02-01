@@ -147,7 +147,7 @@ wheelnavdatetime.prototype.setDateTime = function () {
     var s = parseInt(today.getSeconds());
     
     if (this.wheelnavMonth.selectedNavItemIndex !== mo) {
-        this.wheelnavMonth.navigateWheel(3);
+        this.wheelnavMonth.navigateWheel(mo);
     }
     if (this.wheelnavDay.selectedNavItemIndex !== d - 1) {
         this.wheelnavDay.navigateWheel(d - 1);
