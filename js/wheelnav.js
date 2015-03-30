@@ -118,11 +118,17 @@ wheelnav = function (divId, raphael, divWidth, divHeight) {
     this.spreaderSliceAngle = 360;
     this.spreaderPathFunction = spreaderPath().PieSpreader;
     this.spreaderPathCustom = null;
-    this.spreaderOnPercent = 1;
-    this.spreaderOffPercent = 1;
-    this.spreaderOnTitle = "+";
-    this.spreaderOffTitle = "-";
+    this.spreaderInPercent = 1;
+    this.spreaderOutPercent = 1;
+    this.spreaderInTitle = "+";
+    this.spreaderOutTitle = "-";
     this.spreaderTitleFont = null;
+    this.spreaderPathInAttr = null;
+    this.spreaderPathOutAttr = null;
+    this.spreaderTitleInAttr = null;
+    this.spreaderTitleOutAttr = null;
+
+    //Percents
     this.minPercent = 0.01;
     this.maxPercent = 1;
     this.initPercent = 1;
@@ -351,7 +357,7 @@ wheelnav.prototype.navigateWheel = function (clicked) {
         else {
             this.marker.setCurrentTransform();
         }
-        this.spreader.setCurrentTransform();
+        this.spreader.setCurrentTransform(true);
     }
 };
 
@@ -462,56 +468,71 @@ wheelnav.prototype.parseWheel = function (holderDiv) {
             var parsedNavItemsHref = [];
             var parsedNavItemsOnmouseup = [];
             var onlyInit = false;
-            var dataAttrExist = false;
 
             //data-wheelnav-slicepath
             var wheelnavSlicepath = holderDiv.getAttribute("data-wheelnav-slicepath");
             if (wheelnavSlicepath !== null) {
-                dataAttrExist = true;
                 if (slicePath()[wheelnavSlicepath] !== undefined) {
                     this.slicePathFunction = slicePath()[wheelnavSlicepath];
                 }
             }
-            //data-wheelnav-wheelradius
-            var wheelnavWheelradius = holderDiv.getAttribute("data-wheelnav-wheelradius");
-            if (wheelnavWheelradius !== null) {
-                dataAttrExist = true;
-                this.wheelRadius = Number(wheelnavWheelradius);
-            }
             //data-wheelnav-colors
             var wheelnavColors = holderDiv.getAttribute("data-wheelnav-colors");
             if (wheelnavColors !== null) {
-                dataAttrExist = true;
                 this.colors = wheelnavColors.split(',');
+            }
+            //data-wheelnav-wheelradius
+            var wheelnavWheelradius = holderDiv.getAttribute("data-wheelnav-wheelradius");
+            if (wheelnavWheelradius !== null) {
+                this.wheelRadius = Number(wheelnavWheelradius);
             }
             //data-wheelnav-navangle
             var wheelnavNavangle = holderDiv.getAttribute("data-wheelnav-navangle");
             if (wheelnavNavangle !== null) {
-                dataAttrExist = true;
                 this.navAngle = Number(wheelnavNavangle);
+            }
+            //data-wheelnav-rotateoff
+            var wheelnavRotateOff = holderDiv.getAttribute("data-wheelnav-rotateoff");
+            if (wheelnavRotateOff !== null) {
+                this.clickModeRotate = false;
             }
             //data-wheelnav-cssmode
             var wheelnavCssmode = holderDiv.getAttribute("data-wheelnav-cssmode");
             if (wheelnavCssmode !== null) {
-                dataAttrExist = true;
                 this.cssMode = true;
             }
             //data-wheelnav-spreader
             var wheelnavSpreader = holderDiv.getAttribute("data-wheelnav-spreader");
             if (wheelnavSpreader !== null) {
-                dataAttrExist = true;
                 this.spreaderEnable = true;
+            }
+            //data-wheelnav-spreaderradius
+            var wheelnavSpreaderRadius = holderDiv.getAttribute("data-wheelnav-spreaderradius");
+            if (wheelnavSpreaderRadius !== null) {
+                this.spreaderRadius = Number(wheelnavSpreaderRadius);
+            }
+            //data-wheelnav-spreaderpath
+            var wheelnavSpreaderPath = holderDiv.getAttribute("data-wheelnav-spreaderpath");
+            if (wheelnavSpreaderPath !== null) {
+                if (markerPath()[wheelnavSpreaderPath] !== undefined) {
+                    this.spreaderPathFunction = spreaderPath()[wheelnavSpreaderPath];
+                }
             }
             //data-wheelnav-marker
             var wheelnavMarker = holderDiv.getAttribute("data-wheelnav-marker");
             if (wheelnavMarker !== null) {
-                dataAttrExist = true;
                 this.markerEnable = true;
             }
-            //data-wheelnav-onlyinit
-            var wheelnavOnlyinit = holderDiv.getAttribute("data-wheelnav-onlyinit");
+            //data-wheelnav-markerpath
+            var wheelnavMarkerPath = holderDiv.getAttribute("data-wheelnav-markerpath");
+            if (wheelnavMarkerPath !== null) {
+                if (markerPath()[wheelnavMarkerPath] !== undefined) {
+                    this.markerPathFunction = markerPath()[wheelnavMarkerPath];
+                }
+            }
+            //data-wheelnav-init
+            var wheelnavOnlyinit = holderDiv.getAttribute("data-wheelnav-init");
             if (wheelnavOnlyinit !== null) {
-                dataAttrExist = true;
                 onlyInit = true;
             }
 
@@ -538,8 +559,6 @@ wheelnav.prototype.parseWheel = function (holderDiv) {
                         //data-wheelnav-navitemtext or data-wheelnav-navitemicon is required
                         continue;
                     }
-
-                    dataAttrExist = true;
 
                     //onmouseup event of navitem element for call it in the navigateFunction
                     if (holderDiv.children[i].onmouseup !== undefined) {
@@ -569,10 +588,10 @@ wheelnav.prototype.parseWheel = function (holderDiv) {
                     this.navItems[i].navigateFunction = parsedNavItemsOnmouseup[i];
                     this.navItems[i].navigateHref = parsedNavItemsHref[i];
                 }
-            }
 
-            if (dataAttrExist && !onlyInit) {
-                this.createWheel();
+                if (!onlyInit) {
+                    this.createWheel();
+                }
             }
         }
 
@@ -652,14 +671,15 @@ wheelnavItem = function (wheelnav, title, itemIndex) {
     this.animateeffect = "bounce";
     this.animatetime = 1500;
     this.sliceAngle = 360 / wheelnav.navItemCount;
-    
+
+    this.navigateHref = null;
+    this.navigateFunction = null;
+
+    //Navitem styles
     this.styleNavItem();
 
     //Wheelnav settings
     this.setWheelSettings();
-
-    this.navigateHref = null;
-    this.navigateFunction = null;
 
     return this;
 };
@@ -870,7 +890,7 @@ wheelnavItem.prototype.hoverEffect = function (hovered, isEnter) {
         }
 
         this.wheelnav.marker.setCurrentTransform();
-        this.wheelnav.spreader.setCurrentTransform();
+        this.wheelnav.spreader.setCurrentTransform(true);
     }
 };
 
@@ -1135,7 +1155,7 @@ wheelnavItem.prototype.setWheelSettings = function () {
         this.slicePathFunction = this.wheelnav.slicePathFunction;
         this.sliceSelectedPathFunction = this.wheelnav.sliceSelectedPathFunction;
         this.sliceHoverPathFunction = this.wheelnav.sliceHoverPathFunction;
-
+            
         this.sliceTransformFunction = this.wheelnav.sliceTransformFunction;
         this.sliceSelectedTransformFunction = this.wheelnav.sliceSelectedTransformFunction;
         this.sliceHoverTransformFunction = this.wheelnav.sliceHoverTransformFunction;
@@ -1478,23 +1498,27 @@ wheelnavTitle.prototype.getTitlePercentAttr = function (currentX, currentY) {
 
 wheelnav.prototype.styleWheel = function () {
     if (!this.cssMode) {
-        if (this.spreaderPathAttr === undefined || this.spreaderPathAttr === null) {
-            this.spreaderPathAttr = { fill: "#444", stroke: "#444", "stroke-width": 2, cursor: 'pointer' };
+        if (this.spreaderPathInAttr === undefined || this.spreaderPathInAttr === null) {
+            this.spreaderPathInAttr = { fill: "#444", stroke: "#444", "stroke-width": 2, cursor: 'pointer' };
         }
-        if (this.spreaderOnAttr === undefined || this.spreaderOnAttr === null) {
-            this.spreaderOnAttr = { fill: "#eee", cursor: 'pointer' };
+        if (this.spreaderPathOutAttr === undefined || this.spreaderPathOutAttr === null) {
+            this.spreaderPathOutAttr = { fill: "#444", stroke: "#444", "stroke-width": 2, cursor: 'pointer' };
         }
-        if (this.spreaderOffAttr === undefined || this.spreaderOffAttr === null) {
-            this.spreaderOffAttr = { fill: "#eee", cursor: 'pointer' };
+        if (this.spreaderTitleInAttr === undefined || this.spreaderTitleInAttr === null) {
+            this.spreaderTitleInAttr = { fill: "#eee", cursor: 'pointer' };
+        }
+        if (this.spreaderTitleOutAttr === undefined || this.spreaderTitleOutAttr === null) {
+            this.spreaderTitleOutAttr = { fill: "#eee", cursor: 'pointer' };
         }
         if (this.markerAttr === undefined || this.markerAttr === null) {
             this.markerAttr = { stroke: "#444", "stroke-width": 2 };
         }
     }
     else {
-        this.spreaderPathAttr = { "class": this.getSpreaderCssClass() };
-        this.spreaderOnAttr = { "class": this.getSpreaderTitleCssClass("in") };
-        this.spreaderOffAttr = { "class": this.getSpreaderTitleCssClass("out") };
+        this.spreaderPathInAttr = { "class": this.getSpreaderCssClass("in") };
+        this.spreaderPathOutAttr = { "class": this.getSpreaderCssClass("out") };
+        this.spreaderTitleInAttr = { "class": this.getSpreaderTitleCssClass("in") };
+        this.spreaderTitleOutAttr = { "class": this.getSpreaderTitleCssClass("out") };
         this.markerAttr = { "class": this.getMarkerCssClass() };
     }
 };
@@ -1541,8 +1565,8 @@ wheelnav.prototype.getTitleCssClass = function (index, subclass) {
 wheelnav.prototype.getLineCssClass = function (index, subclass) {
     return "wheelnav-" + this.holderId + "-line-" + subclass + "-" + index;
 };
-wheelnav.prototype.getSpreaderCssClass = function () {
-    return "wheelnav-" + this.holderId + "-spreader";
+wheelnav.prototype.getSpreaderCssClass = function (state) {
+    return "wheelnav-" + this.holderId + "-spreader-" + state;
 };
 wheelnav.prototype.getSpreaderTitleCssClass = function (state) {
     return "wheelnav-" + this.holderId + "-spreadertitle-" + state;
@@ -2708,12 +2732,12 @@ spreader = function (wheelnav) {
         if (this.wheelnav.spreaderTitleFont !== null) { this.fontAttr = { font: this.wheelnav.spreaderTitleFont }; }
         else { this.fontAttr = { font: '100 32px Impact, Charcoal, sans-serif' }; }
 
-        this.spreaderPathOn = this.wheelnav.spreaderPathFunction(this.spreaderHelper, this.wheelnav.spreaderOnPercent, this.wheelnav.spreaderPathCustom);
-        this.spreaderPathOff = this.wheelnav.spreaderPathFunction(this.spreaderHelper, this.wheelnav.spreaderOffPercent, this.wheelnav.spreaderPathCustom);
+        this.spreaderPathIn = this.wheelnav.spreaderPathFunction(this.spreaderHelper, this.wheelnav.spreaderInPercent, this.wheelnav.spreaderPathCustom);
+        this.spreaderPathOut = this.wheelnav.spreaderPathFunction(this.spreaderHelper, this.wheelnav.spreaderOutPercent, this.wheelnav.spreaderPathCustom);
 
-        var currentPath = this.spreaderPathOff;
+        var currentPath = this.spreaderPathOut;
         if (thisWheelNav.initPercent < thisWheelNav.maxPercent) {
-            currentPath = this.spreaderPathOn;
+            currentPath = this.spreaderPathIn;
         }
 
         this.spreaderPath = this.wheelnav.raphael.path(currentPath.spreaderPathString);
@@ -2725,35 +2749,40 @@ spreader = function (wheelnav) {
         });
 
         //Set titles
-        if (wheelnavTitle().isPathTitle(this.wheelnav.spreaderOnTitle)) {
-            onTitle = new wheelnavTitle(this.wheelnav.spreaderOnTitle, this.wheelnav.raphael.raphael);
-            this.onTitle = onTitle.getTitlePercentAttr(this.spreaderPathOff.titlePosX, this.spreaderPathOff.titlePosY);
+        if (wheelnavTitle().isPathTitle(this.wheelnav.spreaderInTitle)) {
+            inTitle = new wheelnavTitle(this.wheelnav.spreaderInTitle, this.wheelnav.raphael.raphael);
+            this.inTitle = inTitle.getTitlePercentAttr(this.spreaderPathIn.titlePosX, this.spreaderPathIn.titlePosY);
         }
         else {
-            onTitle = new wheelnavTitle(this.wheelnav.spreaderOnTitle);
-            this.onTitle = onTitle.getTitlePercentAttr(this.spreaderPathOff.titlePosX, this.spreaderPathOff.titlePosY);
+            inTitle = new wheelnavTitle(this.wheelnav.spreaderInTitle);
+            this.inTitle = inTitle.getTitlePercentAttr(this.spreaderPathIn.titlePosX, this.spreaderPathIn.titlePosY);
         }
 
-        if (wheelnavTitle().isPathTitle(this.wheelnav.spreaderOffTitle)) {
-            offTitle = new wheelnavTitle(this.wheelnav.spreaderOffTitle, this.wheelnav.raphael.raphael);
-            this.offTitle = offTitle.getTitlePercentAttr(this.spreaderPathOn.titlePosX, this.spreaderPathOn.titlePosY);
-            this.spreaderTitle = thisWheelNav.raphael.path(this.offTitle.path);
+        if (wheelnavTitle().isPathTitle(this.wheelnav.spreaderOutTitle)) {
+            outTitle = new wheelnavTitle(this.wheelnav.spreaderOutTitle, this.wheelnav.raphael.raphael);
+            this.outTitle = outTitle.getTitlePercentAttr(this.spreaderPathOut.titlePosX, this.spreaderPathOut.titlePosY);
         }
         else {
-            offTitle = new wheelnavTitle(this.wheelnav.spreaderOffTitle);
-            this.offTitle = offTitle.getTitlePercentAttr(this.spreaderPathOn.titlePosX, this.spreaderPathOn.titlePosY);
-            this.spreaderTitle = thisWheelNav.raphael.text(currentPath.titlePosX, currentPath.titlePosY, this.offTitle.title);
+            outTitle = new wheelnavTitle(this.wheelnav.spreaderOutTitle);
+            this.outTitle = outTitle.getTitlePercentAttr(this.spreaderPathOut.titlePosX, this.spreaderPathOut.titlePosY);
         }
 
-        if (thisWheelNav.initPercent === thisWheelNav.maxPercent) {
-            
+        var currentTitle = this.outTitle;
+        var currentTitleAttr = this.wheelnav.spreaderTitleOutAttr;
+        if (thisWheelNav.initPercent < thisWheelNav.maxPercent) {
+            currentTitle = this.inTitle;
+            currentTitleAttr = this.wheelnav.spreaderTitleInAttr;
+        }
+
+        if (wheelnavTitle().isPathTitle(this.wheelnav.spreaderOutTitle)) {
+            this.spreaderTitle = thisWheelNav.raphael.path(currentTitle.path);
         }
         else {
-            
+            this.spreaderTitle = thisWheelNav.raphael.text(currentPath.titlePosX, currentPath.titlePosY, currentTitle.title);
         }
-
+        
         this.spreaderTitle.attr(this.fontAttr);
-        this.spreaderTitle.attr(thisWheelNav.spreaderOnAttr);
+        this.spreaderTitle.attr(currentTitleAttr);
         this.spreaderTitle.id = thisWheelNav.getSpreaderTitleId();
         this.spreaderTitle.node.id = this.spreaderTitle.id;
         this.spreaderTitle.click(function () {
@@ -2766,58 +2795,62 @@ spreader = function (wheelnav) {
     return this;
 };
 
-spreader.prototype.setCurrentTransform = function () {
+spreader.prototype.setCurrentTransform = function (withoutAnimate) {
     if (this.wheelnav.spreaderEnable) {
-        this.spreaderPath.toFront();
-        
 
-        if (this.wheelnav.currentPercent > this.wheelnav.minPercent) {
-            currentPath = this.spreaderPathOn.spreaderPathString;
-        }
-        else {
-            currentPath = this.spreaderPathOff.spreaderPathString;
-        }
-
-        spreaderTransformAttr = {
-            path: currentPath
-        };
-
-        //Animate spreader
-        this.spreaderPath.animate(spreaderTransformAttr, this.animatetime, this.animateeffect);
-
-        //titles
-        var currentTitle;
-
-        if (this.wheelnav.currentPercent === this.wheelnav.maxPercent) {
-            currentTitle = this.offTitle;
-            this.spreaderTitle.attr(this.wheelnav.spreaderOffAttr);
-        }
-        else {
-            currentTitle = this.onTitle;
-            this.spreaderTitle.attr(this.wheelnav.spreaderOnAttr);
-        }
-
-        if (this.spreaderTitle.type === "path") {
-            titleTransformAttr = {
-                path: currentTitle.path
-            };
-        }
-        else {
-            //Little hack for proper appearance of "-" sign
-            offYOffset = 0;
-            if (currentTitle.title === "-") { offYOffset = 3; }
-
-            titleTransformAttr = {
-                x: currentTitle.x,
-                y: currentTitle.y - offYOffset
-            };
-
-            if (currentTitle.title !== null) {
-                this.spreaderTitle.attr({ text: currentTitle.title });
+        if (withoutAnimate === undefined ||
+            withoutAnimate === false) {
+            
+            if (this.wheelnav.currentPercent > this.wheelnav.minPercent) {
+                currentPath = this.spreaderPathOut.spreaderPathString;
             }
+            else {
+                currentPath = this.spreaderPathIn.spreaderPathString;
+            }
+
+            spreaderTransformAttr = {
+                path: currentPath
+            };
+
+            //Animate spreader
+            this.spreaderPath.animate(spreaderTransformAttr, this.animatetime, this.animateeffect);
+
+            //titles
+            var currentTitle;
+            var titleTransformAttr;
+
+            if (this.wheelnav.currentPercent === this.wheelnav.maxPercent) {
+                currentTitle = this.outTitle;
+                titleTransformAttr = this.wheelnav.spreaderTitleOutAttr;
+                this.spreaderPath.attr(this.wheelnav.spreaderPathOutAttr);
+            }
+            else {
+                currentTitle = this.inTitle;
+                titleTransformAttr = this.wheelnav.spreaderTitleInAttr;
+                this.spreaderPath.attr(this.wheelnav.spreaderPathInAttr);
+            }
+
+            if (this.spreaderTitle.type === "path") {
+                titleTransformAttr.path = currentTitle.path;
+            }
+            else {
+                //Little hack for proper appearance of "-" sign
+                offYOffset = 0;
+                if (currentTitle.title === "-") { offYOffset = 3; };
+
+                titleTransformAttr.x = currentTitle.x;
+                titleTransformAttr.y = currentTitle.y - offYOffset;
+
+                if (currentTitle.title !== null) {
+                    this.spreaderTitle.attr({ text: currentTitle.title });
+                }
+            }
+
+            //Animate title
+            this.spreaderTitle.animate(titleTransformAttr, this.animatetime, this.animateeffect);
         }
 
-        this.spreaderTitle.animate(titleTransformAttr, this.animatetime, this.animateeffect);
+        this.spreaderPath.toFront();
         this.spreaderTitle.toFront();
     }
 };
@@ -3191,7 +3224,7 @@ marker.prototype.setCurrentTransform = function (navAngle) {
 
 ///#source 1 1 /js/source/marker/wheelnav.markerPathStart.js
 /* ======================================================================================= */
-/* Spreader path definitions.                                                              */
+/* Marker path definitions.                                                                */
 /* ======================================================================================= */
 
 markerPath = function () {
@@ -3435,6 +3468,7 @@ var colorpalette = {
     defaultpalette: new Array("#2ECC40", "#FFDC00", "#FF851B", "#FF4136", "#0074D9", "#777"),
     purple: new Array("#4F346B", "#623491", "#9657D6", "#AD74E7", "#CBA3F3"),
     greenred: new Array("#17B92A", "#FF3D00", "#17B92A", "#FF3D00"),
+    greensilver: new Array("#1F700A", "#79CC3C", "#D4E178", "#E6D5C3", "#AC875D"),
     oceanfive: new Array("#00A0B0", "#6A4A3C", "#CC333F", "#EB6841", "#EDC951"),
     garden: new Array("#648A4F", "#2B2B29", "#DF6126", "#FFA337", "#F57C85"),
     gamebookers: new Array("#FF9900", "#DCDCDC", "#BCBCBC", "#3299BB", "#727272"),
@@ -3444,5 +3478,8 @@ var colorpalette = {
     theworldismine: new Array("#F21D1D", "#FF2167", "#B521FF", "#7E2AA8", "#000000"),
     fractalloveone: new Array("#002EFF", "#00FFF7", "#00FF62", "#FFAA00", "#FFF700"),
     fractallovetwo: new Array("#FF9500", "#FF0000", "#FF00F3", "#AA00FF", "#002EFF"),
-    fractallove: new Array("#002EFF", "#00FFF7", "#00FF62", "#FFAA00", "#FFF700", "#FF0000", "#FF00F3", "#AA00FF")
+    fractallove: new Array("#002EFF", "#00FFF7", "#00FF62", "#FFAA00", "#F5D908", "#FF0000", "#FF00F3", "#AA00FF"),
+    sprinkles: new Array("#272523", "#FFACAC", "#FFD700", "#00590C", "#08006D"),
+    goldenyellow: new Array("#D8B597", "#8C4006", "#B6690F", "#E3C57F", "#FFEDBE"),
+    hotaru: new Array("#364C4A", "#497C7F", "#92C5C0", "#858168", "#CCBCA5")
 };

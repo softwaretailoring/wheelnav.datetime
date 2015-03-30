@@ -65,8 +65,8 @@ a:hover {
 }
 
 .wheelNav {
-    height: 350px;
-    width: 350px;
+    height: 800px;
+    width: 800px;
     margin: auto;
 }
 
@@ -78,8 +78,8 @@ a:hover {
 
 @media (max-width: 480px) {
   .wheelNav {
-    height: 250px;
-    width: 250px;
+    height: 400px;
+    width: 400px;
   }
 
   .wheelNavSmall {
